@@ -1,0 +1,130 @@
+body {
+/*	margin-top: 2em;
+*/	background-color: white;
+}
+
+h1   {
+	font-family: 'Space Mono', monospace;
+	font-size: 2em;
+	line-height: 1em;
+	color: black;
+}
+
+
+.bigParagraphContent{
+	max-width: 500px;
+	margin-top: 4em;
+	font-family: 'Open Sans', sans-serif;
+	color: grey;
+	text-align: left;
+	font-size: 1.7em;
+}
+
+
+.medParagraphContent{
+	max-width: 500px;
+	margin-top: 0em;
+	font-family: 'Open Sans', sans-serif;
+	color: grey;
+	text-align: left;
+	font-size: 1.2em;
+}
+
+.restOftitleBar{
+	color: LightGray;
+}
+h1   {
+	font-family: 'Space Mono', monospace;
+	font-size: 5em;
+	line-height: 0.5em;
+	color: black;
+}
+h2   {
+	font-family: 'Space Mono', monospace;
+	color: LightGray;
+	font-size: 2em;
+	line-height: 0.7em;
+}
+h3   {
+	font-family: 'Space Mono', monospace;
+	color: Grey;
+	font-size: 1.5em;
+	line-height: 0.7em;
+}
+
+p{
+	font-family: 'Open Sans', sans-serif;
+	color: grey;
+}
+
+
+.titlePink{
+	color: pink;
+}
+.titleLink{
+	text-decoration: none;
+	color: black;
+}
+
+hr{
+	width: 75px;
+	height: 4px;
+	/* color is for IE */
+	color: #444444;
+	/* background is for all other web browsers */
+	background: #444444;
+	/* border: 0 removes the shading in most web browsers */
+	border: 0;
+	/* A zero-margin aligns it in most web browsers */
+	margin: 0;
+	/* Aligns it in IE */
+	text-align: left;
+}
+
+
+
+
+
+.homepagelink:{
+	text-decoration: none;
+}
+
+.homepagelink:link {
+  color: LightGray;
+	text-decoration: none;
+}
+
+/* visited link */
+.homepagelink:visited {
+  color: LightGray;
+	text-decoration: none;
+}
+
+/* mouse over link */
+.homepagelink:hover {
+  color: pink;
+	text-decoration: none;
+}
+
+/* selected link */
+.homepagelink:active {
+  color: LightGray;
+	text-decoration: none;
+}
+
+.homepagelinks{
+	margin-top: 2em;
+	font-family: 'Space Mono', monospace;
+	color: LightGray;
+	font-size: 2em;
+	line-height: 0.7em;
+}
+
+
+.paragraphContent{
+	max-width: 500px;
+	margin-top: 4em;
+	font-family: 'Open Sans', sans-serif;
+	color: grey;
+	text-align: left;
+}
