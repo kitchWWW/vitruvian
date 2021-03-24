@@ -1,7 +1,17 @@
-function midiScale(val,max){
-	return Math.min(Math.max(Math.round(val * 127 / max),0),127)
+LOW_CONFIDENCE = 'grey'
+HIGH_CONFIDENCE = 'black'
+
+function midiScale(val, max) {
+	return Math.min(Math.max(Math.round(val * 127 / max), 0), 127)
 
 }
+
+function sendPossible(possible){
+	if (possible['cc'] != 0) {
+		sendMidiCC(possible['cc'], possible['val'])
+	}
+}
+
 
 function makeDetail() {
 	return {
@@ -9,12 +19,17 @@ function makeDetail() {
 		'enabled': false,
 		'val': 0,
 		'solo': false,
-		'confidence':0,
+		'confidence': 0,
+		'color': LOW_CONFIDENCE,
 	}
 }
 
+
 var app = angular.module("myShoppingList", []);
 app.controller("myCtrl", function($scope) {
+
+	$scope.confidenceCutoff = .05
+
 	$scope.streams = {
 		'head': {
 			'nose': {
@@ -26,6 +41,14 @@ app.controller("myCtrl", function($scope) {
 				'y': makeDetail()
 			},
 			'rightEar': {
+				'x': makeDetail(),
+				'y': makeDetail()
+			},
+			'leftEye': {
+				'x': makeDetail(),
+				'y': makeDetail()
+			},
+			'rightEye': {
 				'x': makeDetail(),
 				'y': makeDetail()
 			}
@@ -55,25 +78,86 @@ app.controller("myCtrl", function($scope) {
 				'x': makeDetail(),
 				'y': makeDetail()
 			}
+		},
+		'legs': {
+			'leftHip': {
+				'x':makeDetail(),
+				'y':makeDetail()
+			},
+			'rightHip': {
+				'x':makeDetail(),
+				'y':makeDetail()
+			},
+			'leftKnee': {
+				'x':makeDetail(),
+				'y':makeDetail()
+			},
+			'rightKnee': {
+				'x':makeDetail(),
+				'y':makeDetail()
+			},
+			'leftAnkle': {
+				'x':makeDetail(),
+				'y':makeDetail()
+			},
+			'rightAnkle': {
+				'x':makeDetail(),
+				'y':makeDetail()
+			}
+
 		}
 	}
 
 	$scope.chiliSpicy = function(spice) {
 		$scope.spice = spice;
-		if(spice.length > 0){
+		if (spice.length > 0) {
 			pose = spice[0].pose
-			console.log($scope.streams.head.nose.x)
-			console.log(pose.nose.x)
-			$scope.streams['head']['nose']['x']['val'] = midiScale(pose.nose.x, 640)
-			$scope.streams['head']['nose']['x']['confidence'] = pose.nose.confidence
-			if($scope.streams['head']['nose']['x']['cc'] != 0){
-				sendCC($scope.streams['head']['nose']['x']['cc'],$scope.streams['head']['nose']['x']['val'])
-			}
+			// console.log($scope.streams.head.nose.x)
+			// console.log(pose.nose.x)
+			updateVal('head','nose')
+			updateVal('head','rightEye')
+			updateVal('head','leftEye')
+			updateVal('head','rightEar')
+			updateVal('head','leftEar')
+
+
+			updateVal('arms','leftWrist')
+			updateVal('arms','leftElbow')
+			updateVal('arms','leftShoulder')
+			updateVal('arms','rightWrist')
+			updateVal('arms','rightElbow')
+			updateVal('arms','rightShoulder')
+
+
+			updateVal('legs','leftHip')
+			updateVal('legs','rightHip')
+			updateVal('legs','leftKnee')
+			updateVal('legs','rightKnee')
+			updateVal('legs','leftAnkle')
+			updateVal('legs','rightAnkle')
+
 			$scope.$apply()
+
 		}
 		// pass along data this way
 	};
 
+	$scope.clickSolo =  function(area,part,param){
+		$scope.streams[area][part][param].solo = !$scope.streams[area][part][param].solo
+	}
+
+	function updateVal(section, part){
+		$scope.streams[section][part]['x']['val'] = midiScale(pose[part].x, 640)
+		$scope.streams[section][part]['x']['confidence'] = pose[part].confidence
+		$scope.streams[section][part]['x']['color'] = pose[part].confidence > $scope.confidenceCutoff ? HIGH_CONFIDENCE : LOW_CONFIDENCE
+		sendPossible($scope.streams[section][part]['x'])
+
+		$scope.streams[section][part]['y']['val'] = midiScale(pose[part].y, 640)
+		$scope.streams[section][part]['y']['confidence'] = pose[part].confidence
+		$scope.streams[section][part]['y']['color'] = pose[part].confidence > $scope.confidenceCutoff ? HIGH_CONFIDENCE : LOW_CONFIDENCE
+		sendPossible($scope.streams[section][part]['y'])
+
+	}
 
 	// function getUrlVars() {
 	// 	var vars = {};
@@ -99,6 +183,60 @@ app.controller("myCtrl", function($scope) {
 		//   body: JSON.stringify(data) // body data type must match "Content-Type" header
 		// });
 		// return await response.json(); // parses JSON response into native JavaScript objects
+	}
+
+
+
+	$scope.midioutputs = [];
+
+	function connect() {
+		navigator.requestMIDIAccess()
+			.then(
+				(midi) => midiReady(midi),
+				(err) => console.log('Something went wrong', err));
+	}
+
+	function midiReady(midi) {
+		// Also react to device changes.
+		midi.addEventListener('statechange', (event) => initDevices(event.target));
+		initDevices(midi); // see the next section!
+	}
+
+	function initDevices(midi) {
+		$scope.midioutputs = [];
+		// MIDI devices that you send data to.
+		const outputs = midi.outputs.values();
+		for (let output = outputs.next(); output && !output.done; output = outputs.next()) {
+			$scope.midioutputs.push(output.value);
+		}
+		$scope.midiSelectedOutput = $scope.midioutputs[0]
+		console.log("wow we here!")
+	}
+	connect()
+	// function sendMidiMessage(pitch, velocity, duration) {
+	//   const NOTE_ON = 0x90;
+	//   const NOTE_OFF = 0x80;
+
+	//   console.log(JSON.stringify(midiOut))
+	//   console.log(midiOut[0])
+	//   const device = midiOut[0];
+	//   const msgOn = [NOTE_ON, pitch, velocity];
+	//   const msgOff = [NOTE_ON, pitch, velocity];
+
+	//   // First send the note on;
+	//   device.send(msgOn); 
+
+	//   // Then send the note off. You can send this separately if you want 
+	//   // (i.e. when the button is released)
+	//   device.send(msgOff, Date.now() + duration); 
+	// }
+
+
+	function sendMidiCC(number, value) {
+		const device = $scope.midiSelectedOutput;
+		const CC_CHANGE = 0xb0;
+		const cc_message = [CC_CHANGE, number, value];
+		device.send(cc_message);
 	}
 
 
@@ -141,18 +279,37 @@ app.controller("myCtrl", function($scope) {
 	}
 
 
+	refreshMidiOuts = function() {
+		connect()
+	}
+
 	WebMidi.enable(function(err) {
-		console.log("webmidi is a go, here are the output options:")
-		console.log(WebMidi.outputs)
+		refreshMidiOuts();
 	});
 
 	function sendCC(chan, val) {
-		try {
-			WebMidi.outputs[0].sendControlChange(chan, val)
-		} catch (e) {
-			console.log("sending midi data error")
-			console.log(e)
-		}
+		// MIDI devices that you send data to.
+		console.log("sending!")
+		// try {
+		// 	WebMidi.outputs[0].sendControlChange(chan, val)
+		// } catch (e) {
+		// 	console.log("sending midi data error")
+		// 	console.log(e)
+		// }
+
+		const NOTE_ON = 0x90;
+		const NOTE_OFF = 0x80;
+
+		const device = midiOut[selectOut.selectedIndex];
+		const msgOn = [NOTE_ON, pitch, velocity];
+		const msgOff = [NOTE_ON, pitch, velocity];
+
+		// First send the note on;
+		device.send(msgOn);
+
+		// Then send the note off. You can send this separately if you want 
+		// (i.e. when the button is released)
+		device.send(msgOff, Date.now() + duration);
 	}
 
 
@@ -271,7 +428,7 @@ app.controller("myCtrl", function($scope) {
 				rightLegRaised,
 				leftLegRaised
 			}
-			console.log(pos);
+			// console.log(pos);
 			rawData = {
 				nose: pose.nose,
 				leftEye: pose.leftEye,
@@ -299,7 +456,7 @@ app.controller("myCtrl", function($scope) {
 			for (let j = 0; j < pose.keypoints.length; j++) {
 				let keypoint = pose.keypoints[j];
 				// Only draw an ellipse is the pose probability is bigger than 0.2
-				if (keypoint.score > 0.2) {
+				if (keypoint.score > 0.05) {
 					RECTSIZE = 5
 					ctx.strokeRect(keypoint.position.x - RECTSIZE, keypoint.position.y - RECTSIZE, RECTSIZE * 2, RECTSIZE * 2);
 				}
